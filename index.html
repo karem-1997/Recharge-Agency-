@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منظومة شحن الوكالة السحابية المتكاملة - Ali Agency</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <style>
+        :root {
+            --bg-color: #0c0c0e;
+            --card-bg: rgba(22, 22, 26, 0.9);
+            --primary-color: #ffd700; 
+            --text-color: #ffffff;
+            --text-secondary: #a0a0aa;
+            --input-bg: #1f1f23;
+            --border-color: #2d2d34;
+            --success-color: #2ecc71;
+            --accent-blue: #3498db;
+            --danger-color: #e74c3c;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; position: relative; }
+        .admin-gear-container { position: absolute; top: 20px; left: 20px; background: rgba(255, 215, 0, 0.05); border: 1px solid var(--border-color); padding: 10px 15px; border-radius: 30px; cursor: pointer; display: flex; align-items: center; gap: 8px; z-index: 1000; }
+        .admin-gear-container:hover { border-color: var(--primary-color); color: var(--primary-color); }
+        .container { width: 100%; max-width: 800px; background: var(--card-bg); backdrop-filter: blur(12px); padding: 30px; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); margin-top: 40px; }
+        h2, h3 { text-align: center; margin-bottom: 20px; color: var(--primary-color); }
+        h2 { font-size: 24px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; }
+        .form-page { display: none; }
+        .form-page.active { display: block; }
+        .form-group { margin-bottom: 18px; }
+        label { display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 14px; }
+        input[type="text"], input[type="password"], input[type="number"], select { width: 100%; padding: 12px; background-color: var(--input-bg); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-color); font-size: 16px; }
+        input:focus, select:focus { outline: none; border-color: var(--primary-color); }
+        .flex-group { display: flex; gap: 10px; }
+        button { width: 100%; padding: 14px; background-color: var(--primary-color); color: #000; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        button:hover { background-color: #e6c200; }
+        .btn-blue { background-color: var(--accent-blue); color: #fff; }
+        .btn-danger { background-color: var(--danger-color); color: #fff; padding: 6px 12px; font-size: 12px; width: auto; }
+        .btn-secondary { background-color: transparent; color: var(--text-secondary); border: 1px solid var(--border-color); }
+        .badge { background: rgba(255, 215, 0, 0.1); border: 1px dashed var(--primary-color); padding: 12px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
+        .box-light { background: rgba(255,255,255,0.02); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 15px; }
+        .radio-box { display: flex; gap: 15px; background: var(--input-bg); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); }
+        .radio-box label { cursor: pointer; display: flex; align-items: center; gap: 6px; color: #fff; }
+        .search-container { background: rgba(52, 152, 219, 0.1); border: 1px solid var(--accent-blue); padding: 15px; border-radius: 12px; margin-bottom: 20px; }
+        .search-result-box { margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 6px; display: none; border-left: 4px solid var(--success-color); }
+        .admin-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .admin-table th, .admin-table td { border: 1px solid var(--border-color); padding: 10px; text-align: center; }
+        .excel-box { margin-top: 25px; border: 2px solid var(--primary-color); border-radius: 12px; overflow: hidden; background: #ffffff; display: none; }
+        .excel-box iframe { width: 100%; height: 450px; border: none; }
+    </style>
+</head>
+<body>
+
+<div class="admin-gear-container" onclick="openAdminPanel()">
+    <span>⚙</span> <strong>لوحة المدير والـ Excel</strong>
+</div>
+
+<div class="container">
+    <div id="loginPage" class="form-page active">
+        <h2>تسجيل دخول الموظفين المسؤولين</h2>
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label>اسم الموظف</label>
+                <input type="text" id="staffUser" required placeholder="يوزر الموظف">
+            </div>
+            <div class="form-group">
+                <label>الباسورد</label>
+                <input type="password" id="staffPass" required placeholder="الباسورد">
+            </div>
+            <button type="submit">تسجيل الدخول</button>
+        </form>
+    </div>
+
+    <div id="dashboardPage" class="form-page">
+        <h2>لوحة العمليات الشحن [Ali Agency]</h2>
+        <div id="staffBadge" class="badge"></div>
+
+        <div class="search-container">
+            <label style="color: var(--accent-blue); font-weight: bold;">🔍 فحص فوري للمديونيات والحساب:</label>
+            <div class="flex-group">
+                <input type="text" id="searchIdInput" placeholder="اكتب ID الوكيل أو المستخدم">
+                <button type="button" class="btn-blue" style="width: 100px; margin: 0;" onclick="lookupDebtById()">فحص</button>
+            </div>
+            <div id="searchResult" class="search-result-box"></div>
+        </div>
+
+        <div class="flex-group" style="margin-bottom: 20px;">
+            <button type="button" class="btn-blue" onclick="showAddClientModal('وكيل')">+ إضافة وكيل جديد</button>
+            <button type="button" class="btn-blue" onclick="showAddClientModal('مستخدم')">+ إضافة مستخدم جديد</button>
+        </div>
+
+        <form id="shippingForm" onsubmit="handleShippingSubmit(event)">
+            <div class="form-group">
+                <label>الفئة المستهدفة</label>
+                <div class="radio-box">
+                    <label><input type="radio" name="targetType" value="وكيل" checked onchange="loadClientsDropdown()"> وكيل</label>
+                    <label><input type="radio" name="targetType" value="مستخدم" onchange="loadClientsDropdown()"> مستخدم</label>
+                </div>
+            </div>
+
+            <div class="form-group" style="border: 2px dashed var(--primary-color); padding: 10px; border-radius: 8px;">
+                <label style="color: var(--primary-color);">🔍 بحث سريع بالـ ID:</label>
+                <input type="text" id="idSearchInput" oninput="searchByIdDirectly()" placeholder="اكتب الـ ID هنا للبحث التلقائي">
+            </div>
+
+            <div class="form-group">
+                <label id="clientSelectLabel">اختر الاسم</label>
+                <select id="clientSelect" onchange="handleClientSelectChange()" required></select>
+            </div>
+
+            <div class="form-group">
+                <label>الـ ID (تلقائي)</label>
+                <input type="text" id="clientStaticId" readonly style="background: rgba(255,255,255,0.05); color: var(--primary-color);">
+            </div>
+
+            <div class="form-group">
+                <label>الشحن موجه لـ:</label>
+                <div class="radio-box">
+                    <label><input type="radio" name="chargeDestination" value="self" checked onchange="toggleDestField()"> لنفس الـ ID</label>
+                    <label><input type="radio" name="chargeDestination" value="other" onchange="toggleDestField()"> لـ ID آخر (للغير)</label>
+                </div>
+            </div>
+
+            <div id="otherIdGroup" class="form-group" style="display: none;">
+                <label>اكتب الـ ID المراد الشحن له (للغير)</label>
+                <input type="text" id="otherTargetId" placeholder="الـ ID البديل">
+            </div>
+
+            <div class="form-group">
+                <label>مبلغ الشحن</label>
+                <input type="number" id="chargeAmount" required placeholder="0.00" min="1">
+            </div>
+
+            <button type="submit">إرسال وتوثيق سحابي</button>
+            <button type="button" class="btn-secondary" onclick="logoutStaff()">تسجيل خروج</button>
+        </form>
+    </div>
+
+    <div id="adminPanelPage" class="form-page">
+        <h2>لوحة السحاب السرية الإدارية</h2>
+        <div class="box-light" style="border: 1px solid var(--success-color);">
+            <h3>نظام التسوية والمديونيات</h3>
+            <input type="text" id="adminSearchInput" placeholder="🔍 بحث بالاسم أو ID..." onkeyup="filterAdminTable()">
+            <table class="admin-table">
+                <thead><tr><th>الاسم</th><th>ID</th><th>المديونية</th><th>إجراء</th></tr></thead>
+                <tbody id="adminClientsTableBody"></tbody>
+            </table>
+        </div>
+        <!-- (إعدادات الربط وباقي لوحة المدير كما هي) -->
+        <div class="box-light" style="border: 1px solid var(--primary-color);">
+            <h3 style="font-size: 15px;">🔗 إعداد ربط وجلب وتحديث Google Sheets</h3>
+            <div class="form-group"><label>1. رابط الـ Web App:</label><input type="text" id="scriptUrlInput"></div>
+            <div class="form-group"><label>2. رابط الشيت الأساسي:</label><input type="text" id="sheetUrlInput"></div>
+            <button type="button" onclick="saveAdminSettings()">حفظ وإقران السحابة بالإكسل</button>
+        </div>
+        <div id="excelBox" class="excel-box"><h3 style="color:#000; background:#f4f4f5; padding:10px; font-size:14px; text-align:right;">📊 لوحة مراقبة الحسابات:</h3><iframe id="excelIframe" src=""></iframe></div>
+        <div class="box-light" style="margin-top:20px;">
+            <h3>إضافة موظف جديد</h3>
+            <form id="addStaffForm" onsubmit="handleCreateStaff(event)">
+                <div class="form-group"><label>اسم الموظف</label><input type="text" id="newStaffUser" required></div>
+                <div class="form-group"><label>باسورد</label><input type="text" id="newStaffPass" required></div>
+                <button type="submit" style="background-color: var(--success-color); color: #fff;">تفعيل الموظف</button>
+            </form>
+        </div>
+        <h3 style="color: var(--primary-color); font-size: 16px; margin-top:15px;">الموظفون الحاليون:</h3>
+        <table class="admin-table"><thead><tr><th>الموظف</th><th>الباسورد</th><th>إجراء</th></tr></thead><tbody id="staffTableBody"></tbody></table>
+        <button type="button" class="btn-secondary" onclick="backToLoginOrDash()" style="margin-top: 25px;">رجوع</button>
+    </div>
+
+    <!-- (باقي الصفحات كما هي) -->
+    <div id="addClientPage" class="form-page">
+        <h3 id="addClientTitle">إضافة في قاعدة البيانات</h3>
+        <div class="box-light">
+            <form id="addClientForm" onsubmit="handleSaveClient(event)">
+                <div class="form-group"><label>الاسم الكامل</label><input type="text" id="newClientName" required></div>
+                <div class="form-group"><label>الـ ID الثابت</label><input type="text" id="newClientId" required></div>
+                <button type="submit" style="background-color: var(--success-color); color: #fff;">اعتماد العميل</button>
+                <button type="button" class="btn-secondary" onclick="backToDashboard()">إلغاء</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // [الـ Firebase والكونفج كما هو]
+    const firebaseConfig = {
+        apiKey: "AIzaSyCegfmJL_pag8gqjxpy3bECJVKb-k3VBV4",
+        authDomain: "ali-agency.firebaseapp.com",
+        databaseURL: "https://ali-agency-default-rtdb.firebaseio.com",
+        projectId: "ali-agency",
+        storageBucket: "ali-agency.firebasestorage.app",
+        messagingSenderId: "65361914677",
+        appId: "1:65361914677:web:cec698d0c790d79c75fa7c",
+        measurementId: "G-NXEG1N1TYD"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // [الدوال المعدلة فقط]
+    db.ref('clients').on('value', snapshot => {
+        let tbody = document.getElementById('adminClientsTableBody');
+        if(!tbody) return;
+        tbody.innerHTML = "";
+        snapshot.forEach(child => {
+            let cl = child.val();
+            // أضفت زر الحذف بجانب زر التصفير
+            tbody.innerHTML += `<tr><td>${cl.name}</td><td>${cl.id}</td><td>${cl.debt || 0}$</td>
+            <td>
+                <button class="btn-danger" style="padding:5px; background:var(--accent-blue);" onclick="settleDebt('${child.key}', '${cl.name}')">تصفير</button>
+                <button class="btn-danger" style="padding:5px;" onclick="deleteClient('${child.key}', '${cl.name}')">حذف</button>
+            </td></tr>`;
+        });
+    });
+
+    function settleDebt(key, name) {
+        if(confirm("تصفير مديونية " + name + "؟")) {
+            db.ref('clients/' + key).update({debt: 0, totalOrders: 0});
+            alert("تم التصفير!");
+        }
+    }
+
+    function deleteClient(key, name) {
+        if(confirm("هل أنت متأكد من حذف العميل: " + name + " نهائياً؟")) {
+            db.ref('clients/' + key).remove();
+            alert("تم حذف العميل!");
+        }
+    }
+
+    // [باقي الدوال كما هي تماماً]
+    let staffAccounts = []; let clientsDatabase = [];
+    let currentLoggedStaff = null; let currentAddingType = "وكيل";
+    let globalScriptUrl = ""; let globalSheetUrl = "";
+
+    function searchByIdDirectly() {
+        const id = document.getElementById('idSearchInput').value.trim();
+        const typeSelected = document.querySelector('input[name="targetType"]:checked').value;
+        const found = clientsDatabase.find(c => c.id === id && c.type === typeSelected);
+        if (found) {
+            document.getElementById('clientSelect').value = found.name;
+            document.getElementById('clientStaticId').value = found.id;
+        }
+    }
+
+    function filterAdminTable() {
+        let val = document.getElementById("adminSearchInput").value.toLowerCase();
+        let rows = document.querySelectorAll("#adminClientsTableBody tr");
+        rows.forEach(tr => {
+            tr.style.display = tr.textContent.toLowerCase().includes(val) ? "" : "none";
+        });
+    }
+
+    db.ref('settings').on('value', (snapshot) => {
+        const val = snapshot.val() || {};
+        globalScriptUrl = val.scriptUrl || "";
+        globalSheetUrl = val.sheetUrl || "";
+        document.getElementById('scriptUrlInput').value = globalScriptUrl;
+        document.getElementById('sheetUrlInput').value = globalSheetUrl;
+        const iframe = document.getElementById('excelIframe');
+        const box = document.getElementById('excelBox');
+        if(globalSheetUrl) {
+            iframe.src = globalSheetUrl.includes("/edit") ? globalSheetUrl.split("/edit")[0] + "/edit?usp=sharing" : globalSheetUrl;
+            box.style.display = "block";
+        } else { box.style.display = "none"; }
+    });
+
+    db.ref('staff').on('value', (snapshot) => {
+        staffAccounts = []; snapshot.forEach((child) => { staffAccounts.push(child.val()); });
+        renderStaffTable();
+        if(staffAccounts.length === 0) db.ref('staff/كريم').set({ username: "كريم", password: "123" });
+    });
+
+    db.ref('clients').on('value', (snapshot) => {
+        clientsDatabase = []; snapshot.forEach((child) => { clientsDatabase.push(child.val()); });
+        if(currentLoggedStaff) loadClientsDropdown();
+    });
+
+    function saveAdminSettings() {
+        const scriptUrl = document.getElementById('scriptUrlInput').value.trim();
+        const sheetUrl = document.getElementById('sheetUrlInput').value.trim();
+        db.ref('settings').set({ scriptUrl, sheetUrl })
+        .then(() => alert("تم ربط الإكسل وتحديث المنظومة سحابياً!"))
+        .catch(() => alert("خطأ في الحفظ"));
+    }
+
+    function sendToGoogleSheet(actionType, payload) {
+        if(!globalScriptUrl) return;
+        const formData = new URLSearchParams();
+        formData.append("action", actionType);
+        formData.append("data", JSON.stringify(payload));
+        fetch(globalScriptUrl, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: formData.toString() });
+    }
+
+    function openAdminPanel() {
+        if (prompt("الباسورد السري للمدير:") === "1987") {
+            document.querySelectorAll('.form-page').forEach(p => p.classList.remove('active'));
+            document.getElementById('adminPanelPage').classList.add('active');
+        } else { alert("مرفوض!"); }
+    }
+
+    function renderStaffTable() {
+        const tbody = document.getElementById('staffTableBody'); tbody.innerHTML = "";
+        staffAccounts.forEach((st) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td><strong>${st.username}</strong></td><td>${st.password}</td>
+            <td><button class="btn-danger" onclick="deleteStaff('${st.username}')">حذف</button></td>`;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function handleCreateStaff(event) {
+        event.preventDefault();
+        const username = document.getElementById('newStaffUser').value.trim();
+        const password = document.getElementById('newStaffPass').value.trim();
+        db.ref('staff/' + username).set({ username, password });
+        document.getElementById('addStaffForm').reset();
+    }
+
+    function deleteStaff(username) { if(confirm("حذف الموظف؟")) db.ref('staff/' + username).remove(); }
+
+    function handleLogin(event) {
+        event.preventDefault();
+        const user = document.getElementById('staffUser').value.trim();
+        const pass = document.getElementById('staffPass').value.trim();
+        const match = staffAccounts.find(s => s.username === user && s.password === pass);
+        if (match) {
+            currentLoggedStaff = match.username;
+            document.getElementById('loginPage').classList.remove('active');
+            document.getElementById('dashboardPage').classList.add('active');
+            document.getElementById('staffBadge').innerHTML = `الموظف المسؤول: <strong>${currentLoggedStaff}</strong>`;
+            loadClientsDropdown();
+        } else { alert("بيانات خاطئة!"); }
+    }
+
+    function loadClientsDropdown() {
+        const typeSelected = document.querySelector('input[name="targetType"]:checked').value;
+        const dropdown = document.getElementById('clientSelect');
+        dropdown.innerHTML = '<option value="">-- اختر الاسم --</option>';
+        clientsDatabase.filter(c => c.type === typeSelected).forEach(c => {
+            const opt = document.createElement('option'); opt.value = c.name; opt.innerText = c.name; dropdown.appendChild(opt);
+        });
+        document.getElementById('clientStaticId').value = ""; 
+    }
+
+    function handleClientSelectChange() {
+        const selectedName = document.getElementById('clientSelect').value;
+        const typeSelected = document.querySelector('input[name="targetType"]:checked').value;
+        const found = clientsDatabase.find(c => c.name === selectedName && c.type === typeSelected);
+        document.getElementById('clientStaticId').value = found ? found.id : "";
+    }
+
+    function lookupDebtById() {
+        const searchId = document.getElementById('searchIdInput').value.trim();
+        const resultBox = document.getElementById('searchResult'); if(!searchId) return;
+        const found = clientsDatabase.find(c => c.id === searchId);
+        resultBox.style.display = 'block';
+        if(found) {
+            resultBox.innerHTML = `📌 <strong>الاسم:</strong> ${found.name}<br>💰 <strong>المديونية:</strong> ${found.debt || 0} $<br>📊 <strong>الشحنات:</strong> ${found.totalOrders || 0}`;
+        } else { resultBox.innerHTML = `❌ الـ ID غير مسجل!`; }
+    }
+
+    function showAddClientModal(type) {
+        currentAddingType = type;
+        document.getElementById('addClientTitle').innerText = `إضافة [${type}] جديد للمنظومة`;
+        document.getElementById('dashboardPage').classList.remove('active');
+        document.getElementById('addClientPage').classList.add('active');
+    }
+
+    function backToDashboard() {
+        document.getElementById('addClientPage').classList.remove('active');
+        document.getElementById('dashboardPage').classList.add('active');
+    }
+
+    function handleSaveClient(event) {
+        event.preventDefault();
+        const name = document.getElementById('newClientName').value.trim();
+        const id = document.getElementById('newClientId').value.trim();
+        const clientPayload = { type: currentAddingType, name: name, id: id, debt: 0, totalOrders: 0 };
+        db.ref('clients/' + id).set(clientPayload);
+        sendToGoogleSheet("createTab", clientPayload);
+        alert(`تم الحفظ وإصدار أمر إنشاء ورقة عمل بالإكسل باسم: ${name}`);
+        document.getElementById('addClientForm').reset();
+        backToDashboard();
+    }
+
+    function handleShippingSubmit(event) {
+        event.preventDefault();
+        const clientName = document.getElementById('clientSelect').value;
+        const staticId = document.getElementById('clientStaticId').value;
+        const chargeDestination = document.querySelector('input[name="chargeDestination"]:checked').value;
+        const amount = parseFloat(document.getElementById('chargeAmount').value);
+        let finalChargedId = staticId;
+        if (chargeDestination === 'other') finalChargedId = document.getElementById('otherTargetId').value.trim();
+        const now = new Date();
+        const formattedTime = now.toLocaleDateString('ar-EG') + ' ' + now.toLocaleTimeString('ar-EG');
+        const clientRef = db.ref('clients/' + staticId);
+        clientRef.once('value').then((snapshot) => {
+            const data = snapshot.val();
+            const newDebt = (data.debt || 0) + amount;
+            const newOrders = (data.totalOrders || 0) + 1;
+            clientRef.update({ debt: newDebt, totalOrders: newOrders });
+            const report = { staff: currentLoggedStaff, clientName: clientName, clientId: staticId, destination: chargeDestination === 'self' ? 'لنفسه' : 'للغير', chargedId: finalChargedId, amount: amount, time: formattedTime };
+            db.ref('shipping_logs').push().set(report);
+            sendToGoogleSheet("appendRow", report);
+            alert(`تم الشحن وتوثيق الحركة في ملف إكسل العميل المخصص!`);
+            document.getElementById('chargeAmount').value = "";
+        });
+    }
+
+    function toggleDestField() {
+        const dest = document.querySelector('input[name="chargeDestination"]:checked').value;
+        document.getElementById('otherIdGroup').style.display = dest === 'other' ? 'block' : 'none';
+    }
+    function backToLoginOrDash() {
+        document.getElementById('adminPanelPage').classList.remove('active');
+        document.getElementById(currentLoggedStaff ? 'dashboardPage' : 'loginPage').classList.add('active');
+    }
+    function logoutStaff() { currentLoggedStaff = null; document.getElementById('dashboardPage').classList.remove('active'); document.getElementById('loginPage').classList.add('active'); }
+</script>
+</body>
+</html>
+
