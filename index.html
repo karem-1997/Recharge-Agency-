@@ -3,28 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منظومة شحن الوكالة - Ali Agency</title>
+    <title>منظومة شحن الوكالة السحابية المتكاملة - Ali Agency</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     
     <style>
         :root {
-            --bg-color: #0c0c0e;
-            --card-bg: rgba(22, 22, 26, 0.9);
-            --primary-color: #ffd700; 
+            --bg-color: #050505;
+            --card-bg: #111111;
+            --primary-color: #e74c3c;
+            --secondary-color: #c0392b;
             --text-color: #ffffff;
-            --text-secondary: #a0a0aa;
-            --input-bg: #1f1f23;
-            --border-color: #2d2d34;
-            --success-color: #2ecc71;
-            --accent-blue: #3498db;
-            --danger-color: #e74c3c;
+            --text-secondary: #aaaaaa;
+            --input-bg: #1a1a1a;
+            --border-color: #333333;
+            --success-color: #27ae60;
+            --accent-blue: #2980b9;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-color); display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; position: relative; }
-        .admin-gear-container { position: absolute; top: 20px; left: 20px; background: rgba(255, 215, 0, 0.05); border: 1px solid var(--border-color); padding: 10px 15px; border-radius: 30px; cursor: pointer; display: flex; align-items: center; gap: 8px; z-index: 1000; }
-        .admin-gear-container:hover { border-color: var(--primary-color); color: var(--primary-color); }
-        .container { width: 100%; max-width: 800px; background: var(--card-bg); backdrop-filter: blur(12px); padding: 30px; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); margin-top: 40px; }
+        .admin-gear-container { position: absolute; top: 20px; left: 20px; background: rgba(231, 76, 60, 0.1); border: 1px solid var(--primary-color); padding: 10px 15px; border-radius: 30px; cursor: pointer; display: flex; align-items: center; gap: 8px; z-index: 1000; color: var(--primary-color); }
+        .admin-gear-container:hover { background: var(--primary-color); color: #fff; }
+        .container { width: 100%; max-width: 800px; background: var(--card-bg); backdrop-filter: blur(12px); padding: 30px; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8); margin-top: 40px; }
         h2, h3 { text-align: center; margin-bottom: 20px; color: var(--primary-color); }
         h2 { font-size: 24px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; }
         .form-page { display: none; }
@@ -34,20 +34,20 @@
         input[type="text"], input[type="password"], input[type="number"], select { width: 100%; padding: 12px; background-color: var(--input-bg); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-color); font-size: 16px; }
         input:focus, select:focus { outline: none; border-color: var(--primary-color); }
         .flex-group { display: flex; gap: 10px; }
-        button { width: 100%; padding: 14px; background-color: var(--primary-color); color: #000; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 5px; }
-        button:hover { background-color: #e6c200; }
+        button { width: 100%; padding: 14px; background-color: var(--primary-color); color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        button:hover { background-color: var(--secondary-color); }
         .btn-blue { background-color: var(--accent-blue); color: #fff; }
-        .btn-danger { background-color: var(--danger-color); color: #fff; padding: 6px 12px; font-size: 12px; width: auto; }
+        .btn-danger { background-color: var(--secondary-color); color: #fff; padding: 6px 12px; font-size: 12px; width: auto; }
         .btn-secondary { background-color: transparent; color: var(--text-secondary); border: 1px solid var(--border-color); }
-        .badge { background: rgba(255, 215, 0, 0.1); border: 1px dashed var(--primary-color); padding: 12px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
-        .box-light { background: rgba(255,255,255,0.02); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 15px; }
+        .badge { background: rgba(231, 76, 60, 0.1); border: 1px dashed var(--primary-color); padding: 12px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
+        .box-light { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 15px; }
         .radio-box { display: flex; gap: 15px; background: var(--input-bg); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); }
         .radio-box label { cursor: pointer; display: flex; align-items: center; gap: 6px; color: #fff; }
-        .search-container { background: rgba(52, 152, 219, 0.1); border: 1px solid var(--accent-blue); padding: 15px; border-radius: 12px; margin-bottom: 20px; }
+        .search-container { background: rgba(41, 128, 185, 0.1); border: 1px solid var(--accent-blue); padding: 15px; border-radius: 12px; margin-bottom: 20px; }
         .search-result-box { margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 6px; display: none; border-left: 4px solid var(--success-color); }
         .admin-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         .admin-table th, .admin-table td { border: 1px solid var(--border-color); padding: 10px; text-align: center; }
-        .excel-box { margin-top: 25px; border: 2px solid var(--primary-color); border-radius: 12px; overflow: hidden; background: #ffffff; display: none; }
+        .excel-box { margin-top: 25px; border: 2px solid var(--primary-color); border-radius: 12px; overflow: hidden; background: #fff; display: none; }
         .excel-box iframe { width: 100%; height: 450px; border: none; }
     </style>
 </head>
@@ -148,7 +148,6 @@
                 <tbody id="adminClientsTableBody"></tbody>
             </table>
         </div>
-        <!-- (إعدادات الربط وباقي لوحة المدير كما هي) -->
         <div class="box-light" style="border: 1px solid var(--primary-color);">
             <h3 style="font-size: 15px;">🔗 إعداد ربط وجلب وتحديث Google Sheets</h3>
             <div class="form-group"><label>1. رابط الـ Web App:</label><input type="text" id="scriptUrlInput"></div>
@@ -169,7 +168,6 @@
         <button type="button" class="btn-secondary" onclick="backToLoginOrDash()" style="margin-top: 25px;">رجوع</button>
     </div>
 
-    <!-- (باقي الصفحات كما هي) -->
     <div id="addClientPage" class="form-page">
         <h3 id="addClientTitle">إضافة في قاعدة البيانات</h3>
         <div class="box-light">
@@ -184,7 +182,6 @@
 </div>
 
 <script>
-    // [الـ Firebase والكونفج كما هو]
     const firebaseConfig = {
         apiKey: "AIzaSyCegfmJL_pag8gqjxpy3bECJVKb-k3VBV4",
         authDomain: "ali-agency.firebaseapp.com",
@@ -198,14 +195,12 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // [الدوال المعدلة فقط]
     db.ref('clients').on('value', snapshot => {
         let tbody = document.getElementById('adminClientsTableBody');
         if(!tbody) return;
         tbody.innerHTML = "";
         snapshot.forEach(child => {
             let cl = child.val();
-            // أضفت زر الحذف بجانب زر التصفير
             tbody.innerHTML += `<tr><td>${cl.name}</td><td>${cl.id}</td><td>${cl.debt || 0}$</td>
             <td>
                 <button class="btn-danger" style="padding:5px; background:var(--accent-blue);" onclick="settleDebt('${child.key}', '${cl.name}')">تصفير</button>
@@ -228,7 +223,6 @@
         }
     }
 
-    // [باقي الدوال كما هي تماماً]
     let staffAccounts = []; let clientsDatabase = [];
     let currentLoggedStaff = null; let currentAddingType = "وكيل";
     let globalScriptUrl = ""; let globalSheetUrl = "";
@@ -376,6 +370,14 @@
         event.preventDefault();
         const name = document.getElementById('newClientName').value.trim();
         const id = document.getElementById('newClientId').value.trim();
+        
+        // التحقق من وجود العميل مسبقاً لمنع التكرار
+        const isExists = clientsDatabase.some(c => c.id === id);
+        if (isExists) {
+            alert("خطأ: هذا الـ ID مسجل بالفعل في المنظومة، لا يمكن تكرار نفس الـ ID!");
+            return;
+        }
+
         const clientPayload = { type: currentAddingType, name: name, id: id, debt: 0, totalOrders: 0 };
         db.ref('clients/' + id).set(clientPayload);
         sendToGoogleSheet("createTab", clientPayload);
@@ -420,4 +422,3 @@
 </script>
 </body>
 </html>
-
